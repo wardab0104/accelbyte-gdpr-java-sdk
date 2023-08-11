@@ -1,0 +1,84 @@
+plugins {
+    id 'java'
+    id 'com.google.protobuf' version '0.8.18'
+    id 'maven-publish'
+}
+
+apply plugin: "project-report"
+apply plugin: 'java-library'
+apply plugin: "idea"
+
+import groovy.json.JsonSlurper
+def jsonSlurper = new JsonSlurper()
+def versionJson = jsonSlurper.parse file('version.json')
+
+group = 'net.accelbyte.gdpr'
+version = "${version != 'unspecified' ? version : versionJson.version}"
+
+configurations.all {
+    exclude group: "commons-logging", module: "commons-logging"
+}
+
+compileJava.options.encoding = 'UTF-8'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+gradle.projectsEvaluated {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-parameters"
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "io.grpc:grpc-protobuf:1.50.2"
+    implementation "io.grpc:grpc-stub:1.50.2"
+    implementation "io.grpc:grpc-services:1.50.2"
+    implementation "io.grpc:grpc-api:1.50.2"
+    implementation 'org.apache.httpcomponents:httpclient:4.5.14'
+    implementation 'net.lingala.zip4j:zip4j:2.11.5'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    // slf4j
+    implementation 'org.slf4j:slf4j-api:1.7.25'
+    annotationProcessor("org.projectlombok:lombok:1.16.20")
+    compileOnly "org.projectlombok:lombok:1.16.20"
+
+    testImplementation 'junit:junit:4.13'
+}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.21.7"
+    }
+    generatedFilesBaseDir = "$projectDir/src/generated"
+    clean {
+        delete generatedFilesBaseDir
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.50.2'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {}
+        }
+    }
+}
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = file("$buildDir/classes/main/")
+        sourceDirs += file('src/generated/main/java')
+        sourceDirs += file('src/generated/main/grpc')
+        generatedSourceDirs += file('src/generated/main/java')
+        generatedSourceDirs += file('src/generated/main/grpc')
+    }
+}
+
+apply from: "publish.gradle"
