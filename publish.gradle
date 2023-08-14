@@ -1,0 +1,46 @@
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier.set 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier.set 'javadoc'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'gdpr-sdk'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+
+            pom {
+                name = 'accelbyte-gdpr-java-sdk'
+                description = 'GDPR SDK for integrating Java services with AGS (AccelByte Gaming Services) GDPR service.'
+                url = 'https://github.com/AccelByte/accelbyte-gdpr-java-sdk'
+                inceptionYear = '2023'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'developer'
+                        name = 'AccelByte Developer'
+                        email = 'developer@accelbyte.net'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git:github.com/AccelByte/accelbyte-gdpr-java-sdk.git'
+                    developerConnection = 'scm:git:ssh://github.com/AccelByte/accelbyte-gdpr-java-sdk.git'
+                    url = 'https://github.com/AccelByte/accelbyte-gdpr-java-sdk/'
+                }
+            }
+        }
+    }
+}
