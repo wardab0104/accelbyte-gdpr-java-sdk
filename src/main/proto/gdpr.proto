@@ -22,12 +22,21 @@ service GDPR {
    */
   rpc DataDeletion(DataDeletionRequest) returns (DataDeletionResponse) {};
 
+  /**
+   Data Restriction.
+
+   Used to inform registered service when specific IAM account was disabled,
+   So that the service could ensure the personal data associated with disabled account ceased to be available to other users.
+   */
+  rpc DataRestriction(DataRestrictionRequest) returns (DataRestrictionResponse) {};
+
 }
 
 message DataGenerationRequest {
   string namespace = 1; // namespace of user
   string userId = 2; // user id
   string uploadUrl = 3; // upload url for uploading the generated file into AccelByte GDPR Service storage
+  bool isPublisherNamespace = 4; // indicate whether the "namespace" is a publisher namespace or game namespace
 }
 
 message DataGenerationResponse {
@@ -38,9 +47,22 @@ message DataGenerationResponse {
 message DataDeletionRequest {
   string namespace = 1; // namespace of user
   string userId = 2; // user id
+  bool isPublisherNamespace = 3; // indicate whether the "namespace" is a publisher namespace or game namespace
 }
 
 message DataDeletionResponse {
   bool success = 1; // indicate data deletion was success
   string message = 2; // message from data deletion process
+}
+
+message DataRestrictionRequest {
+  string namespace = 1; // namespace of user
+  string userId = 2; // user id
+  bool restrict = 3; // restrict or not
+  bool isPublisherNamespace = 4; // indicate whether the "namespace" is a publisher namespace or game namespace
+}
+
+message DataRestrictionResponse {
+  bool success = 1; // indicate restrict processing was success
+  string message = 2; // message from restrict processing
 }
