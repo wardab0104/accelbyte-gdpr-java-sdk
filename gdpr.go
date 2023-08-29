@@ -33,3 +33,7 @@ func (sdk GdprGrpc) SetDataGenerationHandler(handler object.DataGenerationHandle
 func (sdk GdprGrpc) SetDataDeletionHandler(handler object.DataDeletionHandler) {
 	sdk.gdprServiceServer.DataDeletionHandler = handler
 }
+
+func (sdk GdprGrpc) SetDataRestrictionHandler(handler object.DataRestrictionHandler) {
+	sdk.gdprServiceServer.DataRestrictionHandler = handler
+}

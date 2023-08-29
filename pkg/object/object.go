@@ -5,8 +5,9 @@
 
 package object
 
-type DataGenerationHandler func(namespace, userID string) (*DataGenerationResult, error)
-type DataDeletionHandler func(namespace, userID string) error
+type DataGenerationHandler func(namespace, userID string, isPublisherNamespace bool) (*DataGenerationResult, error)
+type DataDeletionHandler func(namespace, userID string, isPublisherNamespace bool) error
+type DataRestrictionHandler func(namespace, userID string, restrict, isPublisherNamespace bool) error
 
 // DataGenerationResult contains result from DataGenerationHandler implementation
 type DataGenerationResult struct {

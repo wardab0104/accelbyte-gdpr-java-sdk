@@ -29,6 +29,12 @@ type GDPRClient interface {
 	// *
 	// Data Deletion.
 	DataDeletion(ctx context.Context, in *DataDeletionRequest, opts ...grpc.CallOption) (*DataDeletionResponse, error)
+	// *
+	// Data Restriction.
+	//
+	// Used to inform registered service when specific IAM account was disabled,
+	// So that the service could ensure the personal data associated with disabled account ceased to be available to other users.
+	DataRestriction(ctx context.Context, in *DataRestrictionRequest, opts ...grpc.CallOption) (*DataRestrictionResponse, error)
 }
 
 type gDPRClient struct {
@@ -57,6 +63,15 @@ func (c *gDPRClient) DataDeletion(ctx context.Context, in *DataDeletionRequest, 
 	return out, nil
 }
 
+func (c *gDPRClient) DataRestriction(ctx context.Context, in *DataRestrictionRequest, opts ...grpc.CallOption) (*DataRestrictionResponse, error) {
+	out := new(DataRestrictionResponse)
+	err := c.cc.Invoke(ctx, "/accelbyte.gdpr.registered.v1.GDPR/DataRestriction", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GDPRServer is the server API for GDPR service.
 // All implementations must embed UnimplementedGDPRServer
 // for forward compatibility
@@ -68,6 +83,12 @@ type GDPRServer interface {
 	// *
 	// Data Deletion.
 	DataDeletion(context.Context, *DataDeletionRequest) (*DataDeletionResponse, error)
+	// *
+	// Data Restriction.
+	//
+	// Used to inform registered service when specific IAM account was disabled,
+	// So that the service could ensure the personal data associated with disabled account ceased to be available to other users.
+	DataRestriction(context.Context, *DataRestrictionRequest) (*DataRestrictionResponse, error)
 	mustEmbedUnimplementedGDPRServer()
 }
 
@@ -80,6 +101,9 @@ func (UnimplementedGDPRServer) DataGeneration(context.Context, *DataGenerationRe
 }
 func (UnimplementedGDPRServer) DataDeletion(context.Context, *DataDeletionRequest) (*DataDeletionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DataDeletion not implemented")
+}
+func (UnimplementedGDPRServer) DataRestriction(context.Context, *DataRestrictionRequest) (*DataRestrictionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DataRestriction not implemented")
 }
 func (UnimplementedGDPRServer) mustEmbedUnimplementedGDPRServer() {}
 
@@ -130,6 +154,24 @@ func _GDPR_DataDeletion_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GDPR_DataRestriction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DataRestrictionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GDPRServer).DataRestriction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/accelbyte.gdpr.registered.v1.GDPR/DataRestriction",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GDPRServer).DataRestriction(ctx, req.(*DataRestrictionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GDPR_ServiceDesc is the grpc.ServiceDesc for GDPR service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -144,6 +186,10 @@ var GDPR_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DataDeletion",
 			Handler:    _GDPR_DataDeletion_Handler,
+		},
+		{
+			MethodName: "DataRestriction",
+			Handler:    _GDPR_DataRestriction_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
