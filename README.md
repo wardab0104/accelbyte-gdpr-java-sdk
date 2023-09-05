@@ -3,11 +3,12 @@
 GDPR SDK for integrating Go services with AGS (AccelByte Gaming Services) GDPR service.
 
 This GDPR SDK could be used by participant services to integrate into AGS GDPR workflow.
-There are 2 GDPR workflow that this GDPR SDK supported:
+There are 3 GDPR workflow that this GDPR SDK supported:
 1. Right to data portability
 2. Right to erasure (right to be forgotten)
+3. Right to restrict processing
 
-The participant services will hook their _**concrete go function**_ of 2 functionalities above into this GDPR SDK.
+The participant services will hook their _**concrete go function**_ of 3 functionalities above into this GDPR SDK.
 
 Under the hood, this GDPR SDK was using gRPC protocol for communication with AGS GDPR service:
 
@@ -54,7 +55,7 @@ if err = yourGrpcServer.Serve(lis); err != nil {
 
 ```go
 // register data generation handler (workflow: Right to data portability)
-gdprSDK.SetDataGenerationHandler(func(namespace, userID string) (*object.DataGenerationResult, error) {
+gdprSDK.SetDataGenerationHandler(func(namespace, userID string, isPublisherNamespace bool) (*object.DataGenerationResult, error) {
     logrus.Info("collecting user data...")
 	
     // your implementation here...
@@ -69,11 +70,20 @@ gdprSDK.SetDataGenerationHandler(func(namespace, userID string) (*object.DataGen
 })
 
 // register data deletion handler (workflow: Right to erasure) 
-gdprSDK.SetDataDeletionHandler(func(namespace, userID string) error {
+gdprSDK.SetDataDeletionHandler(func(namespace, userID string, isPublisherNamespace bool) error {
     logrus.Info("deleting user data...")
 	
     // your implementation here...
 	
+    return nil
+})
+
+// register data restriction handler (workflow: Right to restrict processing) 
+gdprSDK.SetDataRestrictionHandler(func(namespace, userID string, restrict, isPublisherNamespace bool) error {
+    logrus.Info("restrict processing user data...")
+
+    // your implementation here...
+
     return nil
 })
 ```

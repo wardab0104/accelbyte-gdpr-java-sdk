@@ -18,8 +18,9 @@ import (
 
 type GDPRServiceServer struct {
 	pb.UnimplementedGDPRServer
-	DataGenerationHandler object.DataGenerationHandler
-	DataDeletionHandler   object.DataDeletionHandler
+	DataGenerationHandler  object.DataGenerationHandler
+	DataDeletionHandler    object.DataDeletionHandler
+	DataRestrictionHandler object.DataRestrictionHandler
 }
 
 func NewGDPRServiceServer() *GDPRServiceServer {
@@ -41,7 +42,7 @@ func (s *GDPRServiceServer) DataGeneration(ctx context.Context, req *pb.DataGene
 
 	if s.DataGenerationHandler != nil {
 		logrus.Infof("[DataGeneration gRPC] Start execute for namespace [%s] userId [%s]", namespace, userID)
-		result, err := s.DataGenerationHandler(namespace, userID)
+		result, err := s.DataGenerationHandler(namespace, userID, req.IsPublisherNamespace)
 		if err != nil {
 			logrus.Errorf("[DataGeneration gRPC] Failed executing DataGenerationHandler. Error: %s", err)
 			return &pb.DataGenerationResponse{
@@ -95,7 +96,7 @@ func (s *GDPRServiceServer) DataDeletion(_ context.Context, req *pb.DataDeletion
 
 	if s.DataDeletionHandler != nil {
 		logrus.Infof("[DataDeletion gRPC] Start execute for namespace [%s] userId [%s]", namespace, userID)
-		err := s.DataDeletionHandler(namespace, userID)
+		err := s.DataDeletionHandler(namespace, userID, req.IsPublisherNamespace)
 		if err != nil {
 			logrus.Errorf("[DataDeletion gRPC] Failed executing DataDeletionHandler. Error: %s", err)
 			return &pb.DataDeletionResponse{
@@ -106,4 +107,27 @@ func (s *GDPRServiceServer) DataDeletion(_ context.Context, req *pb.DataDeletion
 	}
 
 	return &pb.DataDeletionResponse{Success: true}, nil
+}
+
+func (s *GDPRServiceServer) DataRestriction(_ context.Context, req *pb.DataRestrictionRequest) (*pb.DataRestrictionResponse, error) {
+	if req.Namespace == "" || req.UserId == "" {
+		return &pb.DataRestrictionResponse{
+			Success: false,
+			Message: "required payload is empty",
+		}, nil
+	}
+
+	if s.DataRestrictionHandler != nil {
+		logrus.Infof("[DataRestriction gRPC] Start execute for namespace [%s] userId [%s] restrict [%s]", req.Namespace, req.UserId, req.Restrict)
+		err := s.DataRestrictionHandler(req.Namespace, req.UserId, req.Restrict, req.IsPublisherNamespace)
+		if err != nil {
+			logrus.Errorf("[DataRestriction gRPC] Failed executing DataRestrictionHandler. Error: %s", err)
+			return &pb.DataRestrictionResponse{
+				Success: false,
+				Message: err.Error(),
+			}, nil
+		}
+	}
+
+	return &pb.DataRestrictionResponse{Success: true}, nil
 }
