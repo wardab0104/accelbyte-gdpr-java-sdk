@@ -3,11 +3,12 @@
 GDPR SDK for integrating Java services with AGS (AccelByte Gaming Services) GDPR service.
 
 This GDPR SDK could be used by participant services to integrate into AGS GDPR workflow.
-There are 2 GDPR workflow that this GDPR SDK supported:
+There are 3 GDPR workflow that this GDPR SDK supported:
 1. Right to data portability
 2. Right to erasure (right to be forgotten)
+3. Right to restrict processing
 
-The participant services will hook their _**concrete GDPRHandler implementation**_ (that contains 2 functionalities above) into this GDPR SDK.
+The participant services will hook their _**concrete GDPRHandler implementation**_ (that contains 3 functionalities above) into this GDPR SDK.
 
 Under the hood, this GDPR SDK was using gRPC protocol for communication with AGS GDPR service:
 
@@ -51,7 +52,7 @@ Create new class to implement [GDPRHandler](src/main/java/net/accelbyte/gdpr/sdk
 ```java
 public class MyGDPRHandler implements GDPRHandler {
     @Override
-    public DataGenerationResult ProcessDataGeneration(String namespace, String userId) {
+    public DataGenerationResult ProcessDataGeneration(String namespace, String userId, boolean isPublisherNamespace) {
         log.info("collecting user data...");
 
         // your implementation here...
@@ -64,9 +65,16 @@ public class MyGDPRHandler implements GDPRHandler {
     }
 
     @Override
-    public void ProcessDataDeletion(String namespace, String userId) {
+    public void ProcessDataDeletion(String namespace, String userId, boolean isPublisherNamespace) {
         log.info("deleting user data...");
         
+        // your implementation here...
+    }
+    
+    @Override
+    public void ProcessDataRestriction(String namespace, String userId, boolean restrict, boolean isPublisherNamespace) {
+        log.info("restrict processing user data...");
+
         // your implementation here...
     }
 }

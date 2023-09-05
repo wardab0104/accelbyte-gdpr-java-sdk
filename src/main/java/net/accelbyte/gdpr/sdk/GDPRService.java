@@ -39,7 +39,7 @@ public class GDPRService extends GDPRGrpc.GDPRImplBase {
         } else {
             log.info("[GDPRService.dataGeneration] start executing for namespace [{}] userId [{}]", request.getNamespace(), request.getUserId());
             try {
-                DataGenerationResult result = handler.ProcessDataGeneration(request.getNamespace(), request.getUserId());
+                DataGenerationResult result = handler.ProcessDataGeneration(request.getNamespace(), request.getUserId(), request.getIsPublisherNamespace());
                 if (result == null || result.getData().size() == 0) {
                     log.info("[GDPRService.dataGeneration] result is empty for namespace [{}] userId [{}]", request.getNamespace(), request.getUserId());
                     responseBuilder.setSuccess(true);
@@ -69,7 +69,10 @@ public class GDPRService extends GDPRGrpc.GDPRImplBase {
 
         if (Strings.isNullOrEmpty(request.getNamespace()) || Strings.isNullOrEmpty(request.getUserId())) {
             log.error("[GDPRService.dataDeletion] empty required payload: namespace or userId.");
+            responseBuilder.setSuccess(false).setMessage("required payload is empty");
+            responseObserver.onNext(responseBuilder.build());
             responseObserver.onCompleted();
+            return;
         }
 
         if (handler == null) {
@@ -77,10 +80,40 @@ public class GDPRService extends GDPRGrpc.GDPRImplBase {
         } else {
             log.info("[GDPRService.dataDeletion] start executing for namespace [{}] userId [{}]", request.getNamespace(), request.getUserId());
             try {
-                handler.ProcessDataDeletion(request.getNamespace(), request.getUserId());
+                handler.ProcessDataDeletion(request.getNamespace(), request.getUserId(), request.getIsPublisherNamespace());
                 responseBuilder.setSuccess(true);
             }catch (Exception ex) {
                 log.error("[GDPRService.dataDeletion] error: [{}]", ex.getMessage());
+                responseBuilder.setSuccess(false).setMessage(ex.getMessage());
+            }
+        }
+
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void dataRestriction(DataRestrictionRequest request, StreamObserver<DataRestrictionResponse> responseObserver){
+        DataRestrictionResponse.Builder responseBuilder = DataRestrictionResponse.newBuilder();
+
+        if (Strings.isNullOrEmpty(request.getNamespace()) || Strings.isNullOrEmpty(request.getUserId())) {
+            log.error("[GDPRService.dataRestriction] empty required payload: namespace or userId.");
+            responseBuilder.setSuccess(false).setMessage("required payload is empty");
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
+            return;
+        }
+
+        if (handler == null) {
+            responseBuilder.setSuccess(true);
+        } else {
+            log.info("[GDPRService.dataRestriction] start executing for namespace [{}] userId [{}] restrict [{}]",
+                    request.getNamespace(), request.getUserId(), request.getRestrict());
+            try {
+                handler.ProcessDataRestriction(request.getNamespace(), request.getUserId(), request.getRestrict(), request.getIsPublisherNamespace());
+                responseBuilder.setSuccess(true);
+            }catch (Exception ex) {
+                log.error("[GDPRService.dataRestriction] error: [{}]", ex.getMessage());
                 responseBuilder.setSuccess(false).setMessage(ex.getMessage());
             }
         }

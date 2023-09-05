@@ -22,17 +22,32 @@ public interface GDPRHandler {
      *    transaction: transactionData
      *  }
      *
-     * @param namespace namespace of user
-     * @param userId    user id
+     * @param namespace             namespace of user
+     * @param userId                user id
+     * @param isPublisherNamespace  indicate whether the "namespace" is a publisher namespace or game namespace
      * @return DataGenerationResult object
      */
-    DataGenerationResult ProcessDataGeneration(String namespace, String userId);
+    DataGenerationResult ProcessDataGeneration(String namespace, String userId, boolean isPublisherNamespace);
 
     /**
      * Process data deletion for the requested user.
      *
-     * @param namespace namespace of user
-     * @param userId    user id
+     * @param namespace             namespace of user
+     * @param userId                user id
+     * @param isPublisherNamespace  indicate whether the "namespace" is a publisher namespace or game namespace
      */
-    void ProcessDataDeletion(String namespace, String userId);
+    void ProcessDataDeletion(String namespace, String userId, boolean isPublisherNamespace);
+
+    /**
+     * Process data restriction for the requested user.
+     *
+     * This process will ensure the personal data associated with disabled account
+     * ceased to be available to other users.
+     *
+     * @param namespace             namespace of user
+     * @param userId                user id
+     * @param restrict              restrict or not
+     * @param isPublisherNamespace  indicate whether the "namespace" is a publisher namespace or game namespace
+     */
+    void ProcessDataRestriction(String namespace, String userId, boolean restrict, boolean isPublisherNamespace);
 }
