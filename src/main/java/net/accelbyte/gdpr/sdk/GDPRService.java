@@ -122,4 +122,33 @@ public class GDPRService extends GDPRGrpc.GDPRImplBase {
         responseObserver.onCompleted();
     }
 
+    @Override
+    public void platformAccountClosure(net.accelbyte.gdpr.registered.v1.PlatformAccountClosureRequest request,
+                                       io.grpc.stub.StreamObserver<net.accelbyte.gdpr.registered.v1.PlatformAccountClosureResponse> responseObserver) {
+        PlatformAccountClosureResponse.Builder responseBuilder = PlatformAccountClosureResponse.newBuilder();
+        if (Strings.isNullOrEmpty(request.getPlatform()) || Strings.isNullOrEmpty(request.getPlatformUserId()) || request.getAccountsList() == null || request.getAccountsList().size() == 0) {
+            log.error("[GDPRService.platformAccountClosure] empty required payload: platform or platformUserId or linked accounts.");
+            responseBuilder.setSuccess(false).setMessage("required payload is empty");
+            responseObserver.onNext(responseBuilder.build());
+            responseObserver.onCompleted();
+            return;
+        }
+
+        if (handler == null) {
+            responseBuilder.setSuccess(true);
+        } else {
+            log.info("[GDPRService.platformAccountClosure] start executing for platform [{}]",
+                    request.getPlatform());
+            try {
+                handler.ProcessPlatformAccountClosure(request.getPlatform(), request.getPlatformUserId(), request.getAccountsList());
+                responseBuilder.setSuccess(true);
+            }catch (Exception ex) {
+                log.error("[GDPRService.platformAccountClosure] error: [{}]", ex.getMessage());
+                responseBuilder.setSuccess(false).setMessage(ex.getMessage());
+            }
+        }
+        responseObserver.onNext(responseBuilder.build());
+        responseObserver.onCompleted();
+    }
+
 }
